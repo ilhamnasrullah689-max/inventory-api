@@ -1,0 +1,63 @@
+services:
+  # Node.js Application Service
+  api:
+    build: ./app
+    container_name: node-postgres-docker-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./env/app.env
+    depends_on:
+      db:
+        condition: service_healthy  
+    networks:
+      - node-postgres-docker-net
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - traefik.http.routers.node-postgres.rule=Host(`node-postgres.local`) && PathPrefix(`/`)
+      - "traefik.http.services.node-postgres.loadbalancer.server.port=3000"
+
+  # PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: node-postgres-docker-db
+    env_file:
+      - ./env/db.env
+    expose:
+      - "5432"
+    volumes:
+      - node-postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - node-postgres-docker-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 50s
+
+  # Traefik Reverse Proxy Service
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik-node-postgres
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - node-postgres-docker-net
+    
+volumes:
+  node-postgres-data: {}
+
+networks:
+  node-postgres-docker-net:
+    driver: bridge
