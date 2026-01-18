@@ -1,0 +1,9 @@
+Notes
+
+Environment files (*.env) are not committed to Git for security reasons
+
+PostgreSQL data is persisted using Docker volumes
+
+Traefik returns 404 page not found if no router rule matches the request
+
+This project is intended for local development and DevOps learning purposes
