@@ -7,6 +7,11 @@ on:
   pull_request:
     branches:
       - main
+=======
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+>>>>>>> 289a7bc (add github actions CI pipeline)
 
 jobs:
   ci:
@@ -21,6 +26,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+<<<<<<< HEAD
 
       - name: Install dependencies
         run: npm ci
@@ -36,12 +42,29 @@ jobs:
       - name: Run tests
         run: |
           if [ -f package.json ] && grep -q "test" package.json; then
+=======
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Run tests
+        working-directory: app
+        run: |
+          if grep -q "\"test\"" package.json; then
+>>>>>>> 289a7bc (add github actions CI pipeline)
             npm test
           else
             echo "No tests defined"
           fi
 
+<<<<<<< HEAD
       - name: Build Docker image (optional)
         run: |
           docker build -t inventory-api .
+=======
+      - name: Build Docker image
+        run: docker build -t inventory-api ./app
+>>>>>>> 289a7bc (add github actions CI pipeline)
 
